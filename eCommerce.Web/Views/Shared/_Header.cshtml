@@ -1,0 +1,256 @@
+﻿@using Microsoft.AspNet.Identity
+
+<div id="myNav" class="overlay" style="">
+    <!-- Button to close the overlay navigation -->
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <!-- Overlay content -->
+    <div class="overlay-content">
+        <form class="advanced-search mr-3" action="@Url.SearchProducts()">
+            <div class="search_box">
+                <table style="width:100%!important">
+
+                    <tr>
+                        <td style="width:100%!important">
+                            <input class="form-control" type="text" name="q" placeholder="@("PP.Header.SearchPlaceholder".Localized())" value="@(ViewBag.SearchTerm)" required style="border-radius: 0; padding-right: 3.5rem; -webkit-box-shadow: none; box-shadow: none; font-size: 17PX; FONT-WEIGHT: 700; font-family: poppinsbold,sans-serif; border: none; border-bottom: 1px solid #cecece; background: #fff; ">
+                        </td>
+                        <td style="float:left!important">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="search_suggestion">
+                            <a href="@Url.SearchProducts("Shop Jewellery")">#Shop Jewellery</a>
+                            <a href="@Url.SearchProducts("Gifts")">#Gifts</a>
+                            <a href="@Url.SearchProducts("Utensils")">#Utensils</a>
+                            <a href="@Url.SearchProducts("Puja Ghar")">#Puja Ghar</a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background:#000">
+
+    <a class="navbar-brand" href="@Url.Home()" style="height: 41PX; width: 244PX;">
+        @*<img " id="ChandiLogo" />*@
+        <img src="~/Content/images/site/logo/CHBH_LOGO_WHITE.png" />
+    </a>
+
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            @{ Html.RenderAction("CategoriesMenu", "Categories"); }
+
+        </ul>
+
+        <div class="mr-2" title="Search" style="margin-left:1.5rem!important">
+            <a>
+                <i style="color: #fff; font-size: 20px;" class="fas fa-search" onclick="openNav()"></i>
+            </a>
+        </div>
+
+        <div class="form-inline my-2 my-lg-0">
+            @*<form class="advanced-search mr-3" action="@Url.SearchProducts()">
+                    <div class="input-group">
+                        <input class="form-control" style="font-size:12px;height:29px;width:250px" type="text" name="q" placeholder="@("PP.Header.SearchPlaceholder".Localized())" value="@(ViewBag.SearchTerm)" required>
+                        <button type="submit" class="btn btn-danger" style="font-size: 12px; height: 29px; background: #c4161c;">
+                            <i class="fas fa-search" ></i>
+                        </button>
+                    </div>
+                </form>*@
+
+            @if (User.Identity.IsAuthenticated)
+            {
+                var hiUserMessage = "PP.Header.Menu.HiUser".LocalizedString().Replace("{user}", User.Identity.GetUserName());
+
+                <div class="login-panel mr-2" style="margin-left:1.5rem!important">
+                    <a href="#" id="btnLogOff" title="@("PP.Header.Menu.LogOff".Localized())">
+                        <i style="color: #fff; font-size: 22px;" class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+
+                if (User.IsInRole("Administrator"))
+                {
+                    <div class="login-panel mr-2" style="margin-left:1.5rem!important">
+                        <a href="@Url.Dashboard()" title="@("PP.Header.Menu.Dashboard".Localized())">
+                            <i style="color: #fff; font-size: 22px;" class="fas fa-user-shield"></i>
+                        </a>
+                    </div>
+                }
+
+                <div class="login-panel mr-2" style="margin-left:1.5rem!important">
+                    <a href="@Url.UserProfile()" title="@hiUserMessage">
+                        @Html.UserAvatar(User.Identity.GetUserPicture(), "image rounded-circle", style: "width: 21px; height: 21px", alt: hiUserMessage)
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="login-panel mr-2" style="margin-left:1.5rem!important">
+                    <a href="@Url.Login()" title="@("PP.Header.Menu.Account".Localized())">
+                        <i style="color:white" class="fas fa-user"></i>
+                    </a>
+                </div>
+            }
+
+            <div class="mr-2" title="WishList" style="margin-left:1.5rem!important">
+                <a href="@Url.WishList()">
+                    <i style="color: #fff; font-size: 22px;" class="far fa-heart"></i>
+                    @*<img src="~/Content/images/site/icons8-wish-list-24.png" />*@
+                </a>
+            </div>
+            <div class="cart-icon cartMenu" title="Cart" style="margin-left:1.5rem!important">
+                <a href="@Url.Cart()">
+                    <span class="pointerCursor">
+
+                        <i style="color: #fff; font-size: 22px;" class="fas fa-shopping-cart"></i>
+                        <span class="badge badge-danger countholder" style="vertical-align: top; padding: 0 5px;margin-left: -7px ">0 :</span>
+
+                        <span class="cart-price ltr-dir" style="color:white;display:none" dir="ltr" title="Total cart amount"> </span>
+
+                    </span>
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+
+
+<div style="display:none">
+    @{ Html.RenderAction("CategoriesMenuForMobile", "Categories"); }
+</div>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <form id="logOffForm" method="post" action="@Url.Logoff()">
+        @Html.AntiForgeryToken()
+    </form>
+
+    <script>
+        $(document).ready(function () {
+            // jQuery code
+
+            //////////////////////// Prevent closing from click inside dropdown
+            $(document).on('click', '.dropdown-menu', function (e) {
+                e.stopPropagation();
+            });
+
+            // make it as accordion for smaller screens
+            if ($(window).width() < 992) {
+                $('.dropdown-menu a').click(function (e) {
+                    e.preventDefault();
+                    if ($(this).next('.submenu').length) {
+                        $(this).next('.submenu').toggle();
+                    }
+                    $('.dropdown').on('hide.bs.dropdown', function () {
+                        $(this).find('.submenu').hide();
+                    })
+                });
+            }
+
+        });
+
+       
+        $("#btnLogOff").click(function () {
+            $("#logOffForm").submit();
+        });
+
+    </script>
+
+}
+<script>
+    function openNav() {
+
+        document.getElementById("myNav").style.height = "320PX";
+    }
+    /* Close when someone clicks on the "x" symbol inside the overlay */
+    function closeNav() {
+        document.getElementById("myNav").style.height = "0%";
+    }
+
+</script>
+<style>
+    .search_suggestion > a {
+        padding: 0.8rem 1.4rem !important;
+        display: inline-block !important;
+        background: #f1f1f1;
+        margin: 1.5rem 0.5rem;
+        border-radius: 1.65rem;
+        font-size: 0.8rem !important;
+        color: #818181 !important;
+        box-shadow: 0px 0px 4PX 0px #bab9b9;
+    }
+    .search_suggestion > a:hover {
+        box-shadow: none;
+        transition: box-shadow 1s
+    }
+        .search_suggestion {
+        color: #000;
+        word-break: break-word;
+        text-align: center;
+        
+    }
+    .search_box {
+        position: relative;
+        max-width: 39rem;
+        margin: 1rem auto 3.2rem;
+    }
+    .overlay {
+        height: 0;
+        width: 100%;
+        position: fixed;
+        z-index: 9999!important;
+        top: 0;
+        left: 0;
+        background-color: white;
+        overflow-y: hidden;
+        transition: 0.5s;
+    }
+    /* Position the content inside the overlay */
+    .overlay-content {
+        position: relative;
+        top: 25%; /* 25% from the top */
+        width: 100%; /* 100% width */
+        text-align: center; /* Centered text/links */
+        margin-top: 30px; /* 30px top margin to avoid conflict with the close button on smaller screens */
+    }
+    /* The navigation links inside the overlay */
+    .overlay a {
+        padding: 8px;
+        text-decoration: none;
+        font-size: 11px;
+        color: #818181;
+        display: block; /* Display block instead of inline */
+        transition: 0.3s; /* Transition effects on hover (color) */
+    }
+    /* When you mouse over the navigation links, change their color */
+    .overlay a:hover, .overlay a:focus {
+        color: #f1f1f1;
+    }
+    /* Position the close button (top right corner) */
+    .overlay .closebtn {
+        position: absolute;
+        top: 20px;
+        right: 15px;
+        font-size: 51px;
+    }
+    /* When the height of the screen is less than 450 pixels, change the font-size of the links and position the close button again, so they don't overlap */
+    @*@media screen and (max-height: 450px) {
+        .overlay a {font-size: 20px}
+        .overlay .closebtn {
+        font-size: 40px;
+        top: 15px;
+        right: 35px;
+        }*@
+     
+</style>

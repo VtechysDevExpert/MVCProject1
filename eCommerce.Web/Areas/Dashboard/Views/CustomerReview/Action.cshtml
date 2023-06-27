@@ -1,0 +1,281 @@
+﻿@model eCommerce.Web.Areas.Dashboard.ViewModels.CustomerReviewActionViewModel
+    @{ 
+        if (Model != null)
+        {
+            if (Model.ID > 0)
+            {
+                Model.PageTitle = "Edit Review";
+                Model.PageDescription = "Edit Customer Review";
+                Model.PageURL = Url.EditAction("CustomerReview", Model.ID);
+            }
+            else
+            {
+                Model.PageTitle = "Create Review";
+                Model.PageDescription = "Create Customer Review ";
+                Model.PageURL = Url.CreateAction("CustomerReview");
+            }
+
+            Model.PageImageURL = PictureHelper.PageImageURL("promos.jpg");
+        }
+}
+
+<div class="page-info-container">
+    <h3 class="h3 mb-2 text-gray-800">
+        @Model.PageTitle
+    </h3>
+    <p>
+        @Model.PageDescription
+    </p>
+    <hr />
+</div>
+
+<div class="page-data-holder mb-4">
+    <form id="actionForm" method="post">
+        <input type="hidden" name="ID" value="@Model.ID" />
+
+        <div class="form-group">
+            <label>
+                User Name
+            </label>
+            <input class="form-control" name="UserName" value="@Model.UserName" placeholder="User Name" />
+        </div>
+        <div class="form-group">
+            <label>
+                Review Heading
+            </label>
+            <input class="form-control" name="ReviewHeading" value="@Model.ReviewHeading" placeholder="Heading of your Review" />
+        </div>
+        <div class="form-group">
+            <label>
+                Product Name
+            </label>
+            <input class="form-control" name="ProductName" value="@Model.ProductName" placeholder="Purchased Product Name" />
+        </div>
+        <div class="form-group">
+            <label>
+                Description
+            </label>
+            <textarea class="form-control" name="Description" placeholder="Full Description" rows="3">@Model.Description</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>
+                Rating (Please Rate out of 5)
+            </label>
+            <input class="form-control" name="Rating" value="@Model.Rating" placeholder="Rating" />
+        </div>
+
+
+        <div class="form-group" id="pics-container">
+            <label>
+                Select Picture
+            </label>
+            <input id="categoryPicture" class="uPicUploadInput form-control" type="file" />
+            <input type="hidden" name="CustomerUrl" value="@Model.CustomerUrl" />
+            <div id="pictureArea" class="pt-2">
+                @Html.Picture(Model.CustomerUrl, "image img-thumbnail", "height: 433px; width: 380px; border: 1px solid #efefef", lazyLoad: false)
+            </div>
+        </div>
+
+        
+
+
+
+        <hr />
+        <div class="form-group mb-0">
+            @if (Model.ID > 0)
+            {
+                <button class="btn btn-success" type="submit" id="actionButton">
+                    <i class="fas fa-edit mr-1"></i>
+                    Update
+                </button>
+                <button class="deleteButton btn btn-danger" type="button" data-id="@Model.ID">
+                    <i class="fas fa-trash-alt mr-1"></i>
+                    Delete
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-success" type="submit" id="actionButton">
+                    <i class="fas fa-plus mr-1"></i>
+                    Save
+                </button>
+            }
+            <a class="btn btn-secondary" href="@Url.ListAction("CustomerReview")">
+                <i class="fas fa-angle-double-left mr-1"></i>
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<div id="pictureTemplate" style="display:none">
+    @Html.UserAvatar(new eCommerce.Entities.Picture(), "image img-thumbnail", "height: 433px; width: 380px; border: 1px solid #efefef")
+</div>
+
+<script>
+    /*$("[name=PictureID]").val("2.jpg");*/
+   /* $("input[name='PictureID']").val("2.jpg");*/
+    $("#categoryPicture").change(function () {
+		var pictures = this.files;
+
+		var picsData = new FormData();
+
+		for (var i = 0; i < pictures.length; i++) {
+			picsData.append("Picture", pictures[i]);
+		}
+
+        addLoader("pics-container");
+		$.ajax({
+			url: "@Url.UploadPictures()",
+			type: "post",
+			data: picsData,
+			dateType: "json",
+			processData: false,
+			contentType: false
+		})
+        .done(function (responses) {
+            if (responses != undefined) {
+                var picResponse = responses[0];
+                AttachNewImage(picResponse.pictureURL, picResponse.ID);
+            }
+            removeLoader("pics-container");
+        })
+        .fail(function () {
+             removeLoader("pics-container");
+             Swal.fire("@("Dashboard.Message.Error".Localized())", "@("Dashboard.Message.GenericErrorMessage".Localized())", "error");
+		});
+    });
+
+    function AttachNewImage(imageURL, imageID) {
+        var $newimgHTML = $("#pictureTemplate").clone();
+
+        $newimgHTML.find(".image").attr("src", "/content/images/" + imageURL);
+        //$newimgHTML.find(".image").attr("data-id", imageID);
+
+        $("input[name=CustomerUrl]").val(imageURL);
+
+        $("#pictureArea").html($newimgHTML.html());
+    }
+
+
+    $("#actionForm").validate({
+        errorClass: "alert alert-danger",
+        errorElement: "div",
+        rules: {
+            UserName: {
+                required: true,
+
+            },
+            ReviewHeading: {
+                required: true,
+            },
+            ProductName: {
+                required: true,
+                minlength: 4
+            },
+             Description:{
+                minlength: 10
+            },
+            Rating: {
+                required: true,
+                range: [1, 5]
+            },
+
+
+        },
+        messages: {
+            UserName: {
+                required: "User name Can't be blank!"
+            },
+
+            Description: {
+				minlength: "Description should contain minimum 10 characters",
+            },
+            ReviewHeading: {
+                required: "Heading should contain minimum 4 characters",
+            },
+
+            ProductName: {
+                required: "Product Name can't be blank",
+                minlength: "Product name should be more than 4 character",
+
+            },
+            Rating: {
+                required: "Rating can't be blank",
+                range: "Rating should be between 1-5"
+
+            },
+        },
+        highlight: function (element, errorClass) {
+            $(element).removeClass(errorClass);
+        }
+    });
+
+    $("#actionForm").submit(function (e) {
+        //alert($('input[name="ValidTill"]').val());
+        //debugger
+        
+        
+        if ($("#actionForm").valid()) {
+            addLoader("actionForm");
+            $.ajax({
+                type: "post",
+                data: $("#actionForm").serialize()
+			})
+            .done(function (response) {
+                if (response.Success) {
+                    window.location.href = "@Url.ListAction("CustomerReview")";
+			    }
+			    else {
+                    removeLoader("actionForm");
+                    Swal.fire("@("Dashboard.Message.Error".Localized())", response.Message, "error");
+			    }
+			})
+            .fail(function () {
+                 removeLoader("actionForm");
+                 Swal.fire("@("Dashboard.Message.Error".Localized())", "@("Dashboard.Message.GenericErrorMessage".Localized())", "error");
+			});
+        }
+
+        e.preventDefault();
+    });
+
+    $(".deleteButton").click(function () {
+        var recordID = $(this).attr("data-id");
+
+        Swal.fire({
+            title: '@("Dashboard.Message.Warning".Localized())',
+            text: "@("Dashboard.Message.ConfirmDeleteWarning".Localized())",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: '@("Dashboard.Message.ConfirmDelete".Localized())',
+            cancelButtonText: '@("Dashboard.Message.CancelDelete".Localized())'
+        }).then((result) => {
+            if (result.value) {
+                addLoader("actionForm");
+				$.ajax({
+					url: "@Url.DeleteAction("CustomerReview")",
+                    type: "post",
+                    data: { id: recordID }
+				})
+                .done(function (response) {
+                    if (response != null && response.Success != undefined && response.Success) {
+                        window.location.href = "@Url.ListAction("CustomerReview")";
+				    }
+                    else {
+                        removeLoader("actionForm");
+                        Swal.fire("@("Dashboard.Message.Error".Localized())", response.Message, "error");
+				    }
+				})
+                .fail(function () {
+                     removeLoader("actionForm");
+                     Swal.fire("@("Dashboard.Message.Error".Localized())", "@("Dashboard.Message.GenericErrorMessage".Localized())", "error");
+			    });
+            }
+        });
+    });
+</script>
+

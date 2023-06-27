@@ -1,0 +1,79 @@
+﻿@model eCommerce.Web.ViewModels.LoginViewModel
+@{
+    Model.PageTitle = "PP.Login.Title".LocalizedString();
+    Model.PageDescription = "PP.Login.Description".LocalizedString().Replace("{application}", ConfigurationsHelper.ApplicationName);
+    Model.PageURL = Url.Login();
+    Model.PageImageURL = PictureHelper.PageImageURL("login.jpg");
+}
+<style>
+
+    .offset-lg-3 {
+        margin-left: 35%;
+    }
+
+    .col-lg-6 {
+        -ms-flex: 0 0 50%;
+        flex: 0 0 30%;
+        max-width: 50%;
+    }
+
+
+    .register-form form .group-input label, .login-form form .group-input label {
+        display: block;
+        font-family: MuliSemiBold, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        font-size: 0.7rem !important;
+        color: #252525;
+        margin-bottom: 5px !important;
+    }
+
+    .login-form .group-input .gi-more .forget-pass {
+        float: right;
+        line-height: 20px;
+        margin-top: -2px;
+        font-size: 0.7rem !important;
+        font-family: MuliSemiBold, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        color: #252525;
+    }
+
+    h4 {
+        font-size: 21px;
+    }
+
+    .site-btn {
+        font-size: 13px !important;
+    }
+
+    .page-content-header {
+        text-align: center;
+        border-bottom: 1px dashed #efefef;
+        margin: 0 0 34px 0 !important;
+    }
+
+    .login-form form .group-input {
+        margin-bottom: 35px;
+    }
+
+</style>
+
+
+<div class="register-login-section spad">
+    <div class="container" id="login-container">
+        <div class="row">
+            <div class="col-lg-6 offset-lg-3">
+                <div class="login-form page-content-holder">
+                    <div class="page-content-header">
+                        <h4 >@Model.PageTitle</h4>
+                    </div>
+
+                    @Html.Partial("_Login", Model)
+                    <div class="switch-login">
+                        <a href="@Url.Register()" class="or-login">
+                            @("PP.Login.RegisterAccount".LocalizedString())
+                        </a>
+                    </div>
+                    @Html.Partial("_ExternalLoginsListPartial", new ExternalLoginListViewModel { ReturnUrl = Model.ReturnUrl })
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

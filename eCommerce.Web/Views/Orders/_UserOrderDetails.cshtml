@@ -1,0 +1,446 @@
+﻿@using Microsoft.AspNet.Identity
+@using eCommerce.Entities
+@model eCommerce.Web.Areas.Dashboard.ViewModels.OrderDetailsViewModel
+
+@if (Model != null && Model.Order != null && Model.Customer.Id == User.Identity.GetUserId())
+{
+    var i = 0;
+    var orderStatus = Model.Order.OrderHistory.OrderByDescending(x => x.ModifiedOn).FirstOrDefault();
+    var IslazyLoadImage = !Request.IsAjaxRequest();
+
+    <ul class="list-group list-group-flush">
+        <li class="btn btn-light lead btn-sm mt-2 " style="font-size: 15px; font-weight: bold; line-height: 2">
+            @("Dashboard.OrderDetails.OrderStatus".Localized()) <a class="btn btn-success btn-sm float-right" href="@Url.PrintInvoice(Model.Order.ID)" target="_blank">
+                <i class="fas fa-print mr-1"></i>
+                @("Dashboard.OrderDetails.PrintInvoice".Localized())
+            </a>
+        </li>
+
+        <li class="list-group-item p-0">
+            <table class="table table-borderless table-hover text-center mb-0">
+                <tbody>
+                    @if (orderStatus != null)
+                    {
+                        <tr style="display:none">
+                            <td style="width:50%;">
+                                @("Dashboard.OrderDetails.OrderStatus".Localized()):
+                            </td>
+                            <td style="width:50%;">
+                                <h4 class="m-0">
+                                    <span class="badge badge-secondary @Html.getCellBackgroundClassByOrderStatus((OrderStatus)orderStatus.OrderStatus)">
+                                        @(string.Format("Dashboard.Orders.OrderStatus." + ((OrderStatus)orderStatus.OrderStatus).ToString()).LocalizedString())
+                                    </span>
+                                </h4>
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td style="width:50%;">
+                            @("Dashboard.OrderDetails.PaymentMethod".Localized()):
+                        </td>
+                        <td style="width:50%;">
+                            @(("Dashboard.OrderDetails.PaymentMethods." + ((PaymentMethods)Model.Order.PaymentMethod).ToString()).LocalizedString())
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(Model.Order.TransactionID))
+                    {
+                        <tr>
+                            <td style="width:50%;">
+                                @("Dashboard.OrderDetails.OrderTransactionID".Localized()):
+                            </td>
+                            <td style="width:50%;">
+                                @if (Model.Order.PaymentMethod == (int)PaymentMethods.CreditCard)
+                                {
+                                    <span>
+                                        @("Dashboard.OrderDetails.OrderProcessor.AuthorizeNet".Localized())
+                                    </span>
+                                }
+                                else if (Model.Order.PaymentMethod == (int)PaymentMethods.RazorPay)
+                                {
+                                    <span>
+                                        @("Dashboard.OrderDetails.OrderProcessor.PayPal".Localized())
+                                    </span>
+                                }
+
+                                @Model.Order.TransactionID
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td style="width:50%;">
+                            @("Dashboard.OrderDetails.PlacedOn".Localized()):
+                        </td>
+                        <td style="width:50%;">
+                            @Model.Order.PlacedOn
+                        </td>
+                    </tr>
+                    @if (orderStatus != null && !(orderStatus.ModifiedOn.Equals(Model.Order.PlacedOn)))
+                    {
+                        <tr>
+                            <td style="width:50%;">
+                                @("Dashboard.OrderDetails.UpdatedOn".Localized()):
+                            </td>
+                            <td style="width:50%;">
+                                @(orderStatus.ModifiedOn)
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td style="width:50%;">
+                            @("Dashboard.OrderDetails.OrderID".Localized()):
+                        </td>
+                        <td style="width:50%;">
+                            @(Model.Order.ID)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:50%;">
+                            @("Dashboard.OrderDetails.OrderUniqueCode".Localized()):
+                        </td>
+                        <td style="width:50%;">
+                            @Model.Order.OrderCode
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </li>
+        <li class="btn btn-light lead btn-sm mt-2" style="font-size:15px; font-weight:bold; "> @("Dashboard.OrderDetails.OrderDetails".Localized())</li>
+
+        <li class="list-group-item p-0">
+
+            <div class="container mt-5 mb-5">
+                <div class="d-flex justify-content-center row">
+                    <div class="col-md-10">
+                        @foreach (var orderItem in Model.Order.OrderItems)
+                        {
+                            var product = Model.Products.FirstOrDefault(p => p.ID == orderItem.ProductID);
+                            var currentLanguageProductRecord = orderItem.Product.ProductRecords.FirstOrDefault(x => x.LanguageID == AppDataHelper.CurrentLanguage.ID);
+                            var thumbnail = PictureHelper.GetProductThumbnail(product.ProductPictures, product.ThumbnailPictureID);
+                            var sanitizedSEOTitle = AppDataHelper.CurrentLanguage.ShortCode == LanguagesHelper.EnglishLanguageShortCode && currentLanguageProductRecord != null ? currentLanguageProductRecord.Name.SanitizeLowerString() : string.Empty;
+                            var order_status = Model.Order.OrderHistory.Where(d => d.ProductID == orderItem.ProductID && d.Weight == orderItem.Weight).FirstOrDefault();
+                            i++;
+
+
+
+
+                            <div class="row p-2 bg-white border rounded" id="OrderDetails_Product_Hover">
+                                <div class="col-md-3 mt-1">
+
+                                    @Html.Thumbnail(picture: thumbnail, targetSize: 190, seoTitle: sanitizedSEOTitle, classes: "img-fluid img-responsive rounded product-image", alt: currentLanguageProductRecord != null ? currentLanguageProductRecord.Name : string.Empty, lazyLoad: IslazyLoadImage)
+                                </div>
+
+                                <div class="col-md-6 mt-1" style="align-self: center;">
+                                    <h5>
+                                        <a class="text-primary" href="@Url.ProductDetails(orderItem.Product.Category.SanitizedName, orderItem.ProductID)" target="_blank">
+                                            @(currentLanguageProductRecord != null ? currentLanguageProductRecord.Name : string.Empty)
+
+
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex flex-row">
+                                        <div style="font-weight:bold;font-size:11px" class="">Weight: <span>@orderItem.Weight</span></div>
+                                    </div>
+                                    <div style="font-weight:bold;font-size:11px" class=""><span>Price: </span><span> @orderItem.ItemPrice.WithCurrency()  </span></div>
+                                    <div style="font-weight:bold;font-size:11px" class=""><span>Quantity :</span><span class="dot"></span><span>  @orderItem.Quantity </span> </div>
+                                    <div style="font-weight:bold;font-size:11px">Sub-Total : @((orderItem.ItemPrice * orderItem.Quantity).WithCurrency())  </div>
+                                    <div style="font-weight:bold;font-size:11px">
+                                        Order Status : Order @if (order_status != null)
+                                        {
+                                            @(string.Format("Dashboard.Orders.OrderStatus." + ((OrderStatus)order_status.OrderStatus).ToString()).LocalizedString())
+                                        }
+                                        else
+                                        {<p>Arriving soon! </p>}
+                                    </div>
+                                </div>
+                                <div class="align-items-center align-content-center col-md-3 border-left mt-1" style="align-self: center;">
+                                    <div class="d-flex flex-row align-items-center">
+
+                                    </div>
+
+                                    <div class="d-flex flex-column mt-4">
+
+                                        @if (order_status != null)
+                                        {
+
+
+                                            if (order_status.OrderStatus <= 2)
+                                            {//<=2 means seller does't shipped an item yet 
+                                                <button class="btn btn-primary btn-sm CancelRequest" data-quantity="@orderItem.Quantity" data-subtotal="@(orderItem.ItemPrice * orderItem.Quantity)" data-weight="@orderItem.Weight" data-price="@orderItem.ItemPrice" data-pid="@orderItem.ProductID" data-id="@orderItem.OrderID" data-fncd="@orderItem.Fncd" type="button"><i class="fa fa-times"></i> Cancel item</button>
+                                            }
+                                            else if (order_status.OrderStatus == 5)
+                                            {
+                                                <button class="btn btn-warning btn-sm " disabled type="button"><i class="fa fa-times"></i>Item cancelled!</button>
+
+                                            }
+                                            else
+                                            {
+                                                <button class="btn btn-primary btn-sm " title="Can't cancel a product once it is dispatched!" disabled type="button"><i class="fa fa-times"></i>  Cancel item</button>
+                                            }
+                                            if (order_status.OrderStatus == 4 && order_status.ProductID == orderItem.ProductID && order_status.Weight == orderItem.Weight)//here you cann specify the logic of how many days Return policy works.so that this button will not be avilable after return policy expired
+                                            {
+                                                <button class="btn btn-primary btn-sm mt-2 ReturnRequest" data-quantity="@orderItem.Quantity" data-subtotal="@(orderItem.ItemPrice * orderItem.Quantity)" data-price="@orderItem.ItemPrice" data-weight="@orderItem.Weight" data-pid="@orderItem.ProductID" data-id="@orderItem.OrderID" data-fncd="@orderItem.Fncd" type="button"><i class="fa fa-undo"></i>  Return</button>
+                                            }
+                                            else if (order_status.OrderStatus == 10 && order_status.ProductID == orderItem.ProductID && order_status.Weight == orderItem.Weight)
+                                            {
+                                                <button class="btn btn-success btn-sm mt-2" disabled title="Your request for returning this product has been accepted!" type="button"><i class="fa fa-check"></i> Return Accepted!</button>
+
+                                            }
+
+
+                                        }
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        }
+
+
+                    </div>
+                </div>
+                <div class="modal-footer flex-wrap justify-content-center bg-white fs-md border-bottom">
+                    <div class="px-2 py-1"><span class="" style="color:black">Subtotal:&nbsp;</span><span> @Model.Order.TotalAmmount.WithCurrency()</span></div>
+                    <div class="px-2 py-1"><span class="" style="color:black">Shipping:&nbsp;</span><span> @Model.Order.DeliveryCharges.WithCurrency()</span></div>
+                    <div class="px-2 py-1">
+                        <span style="color:black" class="">Discount:&nbsp;</span>  <span>
+                            @Model.Order.Discount.WithCurrency()
+                        </span>
+                        @if (Model.Order.Promo != null)
+                        {
+                            <div class="alert alert-success mb-0 mt-1" role="alert">
+                                @("Dashboard.OrderDetails.PromoApplied".LocalizedString().Replace("{promo}", Model.Order.Promo.Code))
+                            </div>
+                        }
+                    </div>
+                    <div class="px-2 py-1"><span class="" style="color:black">Total:&nbsp;</span><span class="fs-lg"> @Model.Order.FinalAmmount.WithCurrency()</span></div>
+                </div>
+            </div>
+
+
+
+
+
+
+        </li>
+        <li class="btn btn-light lead btn-sm mt-2 " style="font-size:15px;font-weight:bold">@("Dashboard.OrderDetails.CustomerDetails".Localized())</li>
+
+
+        <li class="list-group-item">
+            <form>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.FullName".Localized())</label>
+                    <div class="col-sm-10">
+                        <input name="FullName" type="text" class="form-control disabled" value="@Model.Order.CustomerName" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.Email".Localized())</label>
+                    <div class="col-sm-10 text-left">
+                        <input name="Email" type="email" class="form-control disabled" value="@Model.Order.CustomerEmail" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.PhoneNumber".Localized())</label>
+                    <div class="col-sm-10">
+                        <input name="PhoneNumber" type="text" class="form-control disabled" value="@Model.Order.CustomerPhone" disabled>
+                    </div>
+                </div>
+            </form>
+        </li>
+        <li class="btn btn-light lead btn-sm mt-2 " style="font-size:15px;font-weight:bold">  @("Dashboard.OrderDetails.ShippingDetails".Localized())</li>
+
+        <li class="list-group-item">
+            <form>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.Country".Localized())</label>
+                    <div class="col-sm-10">
+                        <input name="Country" type="text" value="@Model.Order.CustomerCountry" class="form-control disabled" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.City".Localized())</label>
+                    <div class="col-sm-10">
+                        <input name="City" type="text" value="@Model.Order.CustomerCity" class="form-control disabled" disabled>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.Address".Localized())</label>
+                    <div class="col-sm-10">
+                        <textarea name="Address" class="form-control disabled" disabled>@Model.Order.CustomerAddress</textarea>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label text-right">@("Dashboard.OrderDetails.ZipCode".Localized())</label>
+                    <div class="col-sm-10">
+                        <input name="ZipCode" type="text" value="@Model.Order.CustomerZipCode" class="form-control disabled" disabled>
+                    </div>
+                </div>
+            </form>
+        </li>
+
+    </ul>
+
+
+}
+else
+{
+    <p class="lead">Incorrect Order ID !!!</p>
+}
+
+<script>
+    $(".ReturnRequest").click(function (e) {
+
+        $('ReturnRequest').attr("disabled", true);
+        Swal.fire({
+            title: 'Reason for returning',
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off'
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Confirm!',
+            showLoaderOnConfirm: true,
+            preConfirm: (review) => {
+
+
+                var $btn = $(this);
+                $.ajax({
+                    url: RETURNREQUEST,
+                    method: 'post',
+                    data: {
+                        OrderID: $btn.attr("data-id"),
+                        OrderFncd: $btn.attr("data-fncd"),
+                        ProductID: $btn.attr("data-pid"),
+                        weight: $btn.attr("data-weight"),
+                        Review: review,
+                         Product_Price: $btn.attr("data-price"),
+                        subtotal: $btn.attr("data-subtotal"),
+                        quantity: $btn.attr("data-quantity")
+                    }
+                })
+                    .done(function (response) {
+                        if (response.Success) {
+                            Swal.fire({
+                                title: 'Return Accepted!',
+                                icon: 'success',
+
+                                text: response.Message,
+                                timer: 2000
+                            });
+                            $('.ReturnRequest').attr("disabled", true);
+                            location.reload();
+
+                            
+                        }
+                        else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '',
+                                showConfirmButton: true,
+                                text: response.Message,
+
+                            })
+                        }
+                    })
+                    .fail(function () {
+                        Swal.fire(RESOURCE_ERRORHEADING, RESOURCE_GENERICERRORMESSAGE, "error");
+                    });
+
+                e.stopPropagation();
+
+
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: `Thank you!`,
+                    icon: 'success'
+                })
+            }
+        })
+
+
+    });
+
+
+    $(".CancelRequest").click(function (e) {
+       
+
+        Swal.fire({
+            title: 'Reason for cancellation',
+            input: 'text',
+            inputAttributes: {
+                autocapitalize: 'off'
+            },
+
+            showCancelButton: true,
+            confirmButtonText: 'Confirm!',
+            showLoaderOnConfirm: true,
+            preConfirm: (review) => {
+
+                
+                var $btn = $(this);
+
+                $.ajax({
+                    
+                    url: CancelRequest,
+                    method: 'post',
+                    data: {
+                        OrderID: $btn.attr("data-id"),
+                        OrderFncd: $btn.attr("data-fncd"),
+                        ProductID: $btn.attr("data-pid"),
+                        weight: $btn.attr("data-weight"), 
+                        Review: review,
+                        Product_Price: $btn.attr("data-price"),
+                        subtotal: $btn.attr("data-subtotal"),
+                        quantity: $btn.attr("data-quantity")
+
+                    }
+                })
+                    .done(function (response) {
+                        if (response.Success) {
+                            Swal.fire({
+                                title: 'Cancelled!',
+                                icon: 'success',
+
+                                text: response.Message,
+                                timer: 2000
+                            });
+
+                            $('.CancelRequest').attr("disabled", true);
+                            location.reload();
+                        }
+                        else {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: '',
+                                showConfirmButton: true,
+                                text: response.Message,
+
+                            })
+                        }
+                    })
+                    .fail(function () {
+                        Swal.fire(RESOURCE_ERRORHEADING, RESOURCE_GENERICERRORMESSAGE, "error");
+                    });
+
+                e.stopPropagation();
+
+
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: `Thank you!`,
+                    icon: 'success'
+                })
+            }
+        })
+
+
+    });
+</script>

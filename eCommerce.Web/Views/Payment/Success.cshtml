@@ -1,0 +1,52 @@
+﻿@using eCommerce.Entities
+@model eCommerce.Web.ViewModels.OrderModel
+
+@if (Model != null)
+{
+    Model.PageTitle = "Order Successfully Placed";
+    Model.PageDescription = "You can view your order details on your profile page";
+    Model.PageURL = Url.OrderSuccess();
+    Model.PageImageURL = PictureHelper.PageImageURL("cart.jpg");
+
+    <div class="breacrumb-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb-text product-more">
+                        <a href="@Url.Home()">
+                            <i class="fas fa-home mr-1"></i>
+                            @("PP.Header.Menu.Home".Localized())
+                        </a>
+                      
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-10 offset-lg-1">
+                    <div class="page-content-holder">
+                        <div class="page-content-header" style="background:#f5f5f5">
+                            <h2 style="color:forestgreen">@Model.PageTitle!</h2>
+                            <p>
+                                @Model.PageDescription
+                            </p>
+                            <p>
+                               <a href="@Url.Home()" style="font-size:12px" class="btn btn-danger"><i class="fas fa-cart-plus"></i> Continue Shopping</a>
+                               <a href="@Url.UserProfile()" style="font-size:12px" class="btn btn-danger"><i class="fas fa-boxes"></i> My Orders</a>
+                            </p>
+                        </div>
+                        <div id="response-holder" class="cart-items-page">
+                            @{Html.RenderPartial("_OrderSuccess", Model);}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+}

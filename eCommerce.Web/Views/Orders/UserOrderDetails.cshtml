@@ -1,0 +1,51 @@
+﻿@model eCommerce.Web.Areas.Dashboard.ViewModels.OrderDetailsViewModel
+
+@{
+    if (Model != null)
+    {
+        Model.PageTitle = "Order Details";
+        Model.PageDescription = "Details of your order.";
+        Model.PageURL = Url.UserOrderDetails("Orders", Model.Order.ID); //Url.DetailsAction("Orders", Model.Order.ID);
+        Model.PageImageURL = PictureHelper.PageImageURL("orders.jpg");
+
+    }
+}
+<div class="breacrumb-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="breadcrumb-text product-more">
+                    <a href="@Url.Home()">
+                        <i class="fas fa-home mr-1"></i>
+                        @("PP.Header.Menu.Home".Localized())
+                    </a>
+                    <span>@Model.PageTitle</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="spad">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-10 offset-lg-1">
+                <div class="page-content-holder">
+                    <div class="page-content-header">
+                        <h3>@Model.PageTitle</h3>
+                        
+                        
+                    </div>
+                    
+                    <div id="response-holder" class="cart-items-page">
+                        @{
+                            Html.RenderPartial("_UserOrderDetails", Model);
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

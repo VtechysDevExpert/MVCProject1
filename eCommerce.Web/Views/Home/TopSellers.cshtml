@@ -1,0 +1,118 @@
+﻿@model eCommerce.Web.ViewModels.ProductsViewModel
+@{
+    var haveComments = Model != null && Model.CustomerReviews != null && Model.CustomerReviews.Count > 0;
+
+    var defaultRating = ConfigurationsHelper.DefaultRating;
+    var itemRating = haveComments ? Math.Ceiling(Model.CustomerReviews.Average(x => x.Rating)) : 0;
+
+    var commentsTitle = string.Format("{0} {1}", haveComments ? Model.CustomerReviews.Count : 0, haveComments && Model.CustomerReviews.Count > 1 ? "PP.ProductDetails.Comments".LocalizedString() : "PP.ProductDetails.Comment".LocalizedString());
+}
+
+@if (Model != null && Model.CustomerReviews != null && Model.CustomerReviews.Count > 0)
+{
+
+    var totalComments = Model.CustomerReviews.Select(x => x.Rating).ToList();// Model.Comments != null && Model.Comments.Count > 0 ? Model.Comments.Select(x => x.Rating).ToList() : new List<int>();
+    var averageRating = RatingsHelpers.GetAverageRating(totalComments);
+
+
+
+    <div class="col-sm-12 content text-center">
+        <h1 class="text-center" style="text-transform: none; margin-bottom: 5px; margin-top: 15px;">Top Sellers</h1>
+    </div>
+
+    <div class="container-fluid mt-3">
+        <div class="card mb-3 border-0 text-center my-auto" style="">
+            
+            @*<a>
+
+                    <span style="font-size:10px;" title="@("PP.ProductDetails.AverageRatingCount".LocalizedString().Replace("{averageRating}", averageRating.ToString()).Replace("{totalComments}", totalComments.ToString()))">
+                        @for (int i = 1; i <= averageRating; i++)
+                        {
+                            <i class="fas fa-star"></i>
+                        }
+
+                        @for (int i = 1; i <= (ConfigurationsHelper.DefaultRating - averageRating); i++)
+                        {
+                            <i class="far fa-star"></i>
+                        }
+                    </span>
+
+                </a>*@
+            @*<a style="color:darkgrey;font-size:12px">from  @("("+totalComments.Count()+") reviews") </a>*@
+            @*<a style="color:darkgrey;font-size:12px">from 2177 reviews</a>*@
+            <div class="product-slider owl-carousel" data-loop="@(Model.CustomerReviews.Count > 6 ? "true" : "false")">
+
+                @foreach (var _reviews in Model.CustomerReviews.Where(x => x.ProductName != null))
+                {
+                    var defaultStars = ConfigurationsHelper.DefaultRating - _reviews.Rating;
+                    //var thumbnail = Model.CustomerReviews.Where(x => x.ProductPictureID == Model.CustomerReviews.).FirstOrDefault() : null : null;
+                    <div class="card mr-2 mt-2 border-0" style="padding:30px;border-radius: 10px;background:#f8f8ff;height:250px">
+
+                        <div style="text-align:center;">
+                            @if (@_reviews.CustomerUrl == "" || @_reviews.CustomerUrl == null)
+                            {
+
+                                @*<img src="@_reviews.CustomerUrl" alt="" />*@
+                                <img class="customer-img" src="~/Content/images/user.jpg" width="58" height="58">
+
+                            }
+                            else
+                            {
+
+                                <img class="customer-img" src="~/Content/images/@_reviews.CustomerUrl" alt="" width="58" height="58">
+
+
+                            }
+                        </div>
+                        <div>
+                            <h5 style="font-size:12px;font-weight:bold;text-transform:uppercase;padding-top:10px;padding-bottom:10px;">@_reviews.UserName</h5>
+                        </div>
+
+                        @*<span class="mr-auto" style="font-size:10px;">
+                                @for (int i = 1; i <= _reviews.Rating; i++)
+                                {
+                                    <i class="fas fa-star"></i>
+                                }
+
+                                @for (int i = 1; i <= defaultStars; i++)
+                                {
+                                    <i class="far fa-star"></i>
+                                }
+                            </span>*@
+
+
+                        <p style="color:#5c5c5c;font-family:cursive;font-size:11px">
+                            @_reviews.Description
+                        </p>
+
+                        <h5 style="font-size: 12px; font-weight: bold; text-transform: uppercase; padding-top: 5px;">@_reviews.ReviewHeading</h5>
+
+
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+<style>
+    .customer-img {
+        display: inline !important;
+        border-radius: 50%;
+        margin-top: -40px;
+        overflow: hidden;
+    }
+
+    .img-responsive {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        object-fit: cover;
+        vertical-align: middle;
+    }
+
+
+    h1 {
+        font-size: 28px !important;
+    }
+</style>
+
